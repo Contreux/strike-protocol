@@ -69,7 +69,7 @@ async function main() {
 
     // Deploy STRIKE
     const STRIKE = await ethers.getContractFactory('Strike');
-    const strike = await INDEX.deploy();
+    const strike = await STRIKE.deploy();
     console.log('STRIKE address', strike.address);
 
 
