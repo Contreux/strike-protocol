@@ -157,7 +157,7 @@ async function main() {
 
     console.log('toggle');
 
-    // Set DAI and Frax bond terms
+    // Set MIM and gOHM & wMEMO bond terms
     await mimBond.initializeBondTerms(mimBondBCV, '700', maxBondPayout, bondFee, maxBondDebt,intialBondDebt ,bondVestingLength);
     await gohmBond.initializeBondTerms(gohmBondBCV, '5', maxBondPayout, maxBondDebt, bondFee, intialBondDebt, bondVestingLength);
     await wmemoBond.initializeBondTerms(gohmBondBCV, '1', maxBondPayout, maxBondDebt, bondFee, intialBondDebt, bondVestingLength);
