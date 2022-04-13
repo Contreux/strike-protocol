@@ -186,7 +186,7 @@ library SafeERC20 {
     }
 }
 
-contract IndexReserveValueCalculator is Ownable {
+contract StrikeReserveValueCalculator is Ownable {
 
     using SafeMath for uint;
     using SafeERC20 for IERC20;

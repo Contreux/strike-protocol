@@ -409,8 +409,7 @@ contract Strike is ERC20Permit, VaultOwned {
     function _burnFrom(address account_, uint256 amount_) internal virtual {
         uint256 decreasedAllowance_ =
             allowance(account_, msg.sender).sub(
-                amount_,
-                "ERC20: burn amount exceeds allowance"
+                amount_
             );
 
         _approve(account_, msg.sender, decreasedAllowance_);
