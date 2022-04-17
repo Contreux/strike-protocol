@@ -154,6 +154,7 @@ describe('BondingTest', () => {
 
 
          await mim.mint(deployer.address, '10000000000000000000000');
+         await mim.mint(treasury.address, '10000000000000000000000');
          await strike.approve(stakingHelper.address, '99999999999999999999999999999');
 
          await treasury.queue('0', mimBond.address);
@@ -183,6 +184,8 @@ describe('BondingTest', () => {
          // queue and toggle liquidity depositor
          await treasury.queue('4', deployer.address, );
          await treasury.toggle('4', deployer.address, zeroAddress);
+
+         await treasury.auditReserves();
       
     });
 
