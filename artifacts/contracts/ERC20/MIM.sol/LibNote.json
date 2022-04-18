@@ -1,0 +1,48 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "LibNote",
+  "sourceName": "contracts/ERC20/MIM.sol",
+  "abi": [
+    {
+      "anonymous": true,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes4",
+          "name": "sig",
+          "type": "bytes4"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "usr",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "arg1",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "arg2",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "LogNote",
+      "type": "event"
+    }
+  ],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212205afaa1fa0dd3a1bbbfc2f3305559196252e435510fcf7eac87f669baed342e9364736f6c63430007050033",
+  "deployedBytecode": "0x6080604052600080fdfea26469706673582212205afaa1fa0dd3a1bbbfc2f3305559196252e435510fcf7eac87f669baed342e9364736f6c63430007050033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
