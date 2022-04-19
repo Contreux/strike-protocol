@@ -60,20 +60,20 @@ describe('strike Staking', () => {
         Treasury = await ethers.getContractFactory('MockTreasury');
         treasury = await Treasury.deploy();
 
-        CalculateEpoch = await ethers.getContractFactory('CalculateEpoch');
-        calculateEpoch = await CalculateEpoch.deploy();
+        // CalculateEpoch = await ethers.getContractFactory('CalculateEpoch');
+        // calculateEpoch = await CalculateEpoch.deploy();
 
-        await treasury.setStakingAndSTRIKE(staking.address, strike.address);
+        //await treasury.setStakingAndSTRIKE(staking.address, strike.address);
 
         await strike.mint(treasury.address, 9000000000000000);
 
         sSTRIKE = await ethers.getContractFactory('sStrike');
         sstrike = await sSTRIKE.deploy(staking.address);
 
-        await staking.initialize( strike.address, sstrike.address, treasury.address, calculateEpoch.address);
+        await staking.initialize( strike.address, sstrike.address, treasury.address, '1642546800');
         await staking.transferOwnership(treasury.address)
-        await sstrike.setMonetaryPolicy(staking.address);
-        await calculateEpoch.setTreasury(treasury.address)
+        //await sstrike.setMonetaryPolicy(staking.address);
+        // await calculateEpoch.setTreasury(treasury.address)
         tokenAmount = '1000000000'
         await strike.mint(deployer.address, '10000000000000');
         await strike.mint(addr1.address, '10000000000000000');
