@@ -25,9 +25,9 @@ describe('strike Staking', () => {
       Staking,
       staking,
       OLY,
-      oly,
+      strike,
       sOLY,
-      soly,
+      sstrike,
       addr2,
       addr3,
       v, 
@@ -52,7 +52,7 @@ describe('strike Staking', () => {
         [deployer, addr1, addr2, addr3] = await ethers.getSigners();
 
         OLY = await ethers.getContractFactory('Strike');
-        oly = await OLY.deploy();
+        strike = await OLY.deploy();
 
         Staking = await ethers.getContractFactory('StrikeStaking');
         staking = await Staking.deploy();
@@ -63,41 +63,41 @@ describe('strike Staking', () => {
         CalculateEpoch = await ethers.getContractFactory('CalculateEpoch');
         calculateEpoch = await CalculateEpoch.deploy();
 
-        await treasury.setStakingAndOLY(staking.address, oly.address);
+        await treasury.setStakingAndOLY(staking.address, strike.address);
 
-        await oly.mint(treasury.address, 9000000000000000);
+        await strike.mint(treasury.address, 9000000000000000);
 
         sOLY = await ethers.getContractFactory('sStrike');
-        soly = await sOLY.deploy(staking.address);
+        sstrike = await sOLY.deploy(staking.address);
 
-        await staking.initialize( oly.address, soly.address, treasury.address, calculateEpoch.address);
+        await staking.initialize( strike.address, sstrike.address, treasury.address, calculateEpoch.address);
         await staking.transferOwnership(treasury.address)
-        await soly.setMonetaryPolicy(staking.address);
+        await sstrike.setMonetaryPolicy(staking.address);
         await calculateEpoch.setTreasury(treasury.address)
         tokenAmount = '1000000000'
-        await oly.mint(deployer.address, '10000000000000');
-        await oly.mint(addr1.address, '10000000000000000');
-        // await oly.mint(addr3.address, 1000000000000000);
+        await strike.mint(deployer.address, '10000000000000');
+        await strike.mint(addr1.address, '10000000000000000');
+        // await strike.mint(addr3.address, 1000000000000000);
 
-        await oly.transferOwnership(treasury.address);
+        await strike.transferOwnership(treasury.address);
 
-        nonce = await oly.nonces(deployer.address)
-        nonceAddr1 = await oly.nonces(addr1.address);
+        nonce = await strike.nonces(deployer.address)
+        nonceAddr1 = await strike.nonces(addr1.address);
 
         deadline = ethers.constants.MaxUint256
 
         domain = {
-            name: await oly.name(),
+            name: await strike.name(),
             version:'1',
             chainId: deployer.provider._network.chainId,
-            verifyingContract: oly.address.toString()
+            verifyingContract: strike.address.toString()
         }
 
         domainAddr1 = {
-            name: await oly.name(),
+            name: await strike.name(),
             version:'1',
             chainId: addr1.provider._network.chainId,
-            verifyingContract: oly.address.toString()
+            verifyingContract: strike.address.toString()
         }
 
         types = {
@@ -139,19 +139,19 @@ describe('strike Staking', () => {
         
     describe('stakeOLY()', () => {
         it('should transfer sOLY from staking contract to staker when stake is made', async () => {
-            expect(await soly.balanceOf(deployer.address)).to.equal(0);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(0);
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
-            expect(await soly.balanceOf(deployer.address)).to.equal(1000000000);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(1000000000);
         });
 
         it('should not let a user stake if they are not the proper signer', async () => {
-            const _nonce = await oly.nonces(deployer.address);
+            const _nonce = await strike.nonces(deployer.address);
 
             const _domain = {
-                name: await oly.name(),
+                name: await strike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: oly.address.toString()
+                verifyingContract: strike.address.toString()
             }
 
             const _val = {
@@ -186,20 +186,20 @@ describe('strike Staking', () => {
             sig = ethers.utils.splitSignature(signature);
 
             await expect(staking.stakeOLY('10000000000000001', deadline,  sig.v, sig.r, sig.s)).to.be.revertedWith("transfer amount exceeds balance");
-            expect(await soly.balanceOf(deployer.address)).to.equal(0);
-            expect(await oly.balanceOf(deployer.address)).to.equal('10000000000000');
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(0);
+            expect(await strike.balanceOf(deployer.address)).to.equal('10000000000000');
 
             
         });
 
         it('should not distribute profits after the first epoch', async () => {
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
-            expect(await soly.balanceOf(deployer.address)).to.equal(tokenAmount);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(tokenAmount);
 
             console.log("Staking address is : " + staking.address);
 
             await treasury.sendOLYProfits(2000000000);
-            expect(await soly.balanceOf(deployer.address)).to.equal(tokenAmount);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(tokenAmount);
         });
 
         it('should distirbute profits correctly if someone stakes after epoch', async () => {
@@ -207,30 +207,30 @@ describe('strike Staking', () => {
 
             await treasury.sendOLYProfits(2000000000);
             await staking.connect(addr1).stakeOLY(3000000000, deadline,  sigAddr1.v, sigAddr1.r, sigAddr1.s);
-            expect(await soly.balanceOf(deployer.address)).to.equal(tokenAmount);
-            expect(await soly.balanceOf(addr1.address)).to.equal(3000000000);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(tokenAmount);
+            expect(await sstrike.balanceOf(addr1.address)).to.equal(3000000000);
 
             await treasury.sendOLYProfits(1000000000);
 
-            expect(await soly.balanceOf(deployer.address)).to.equal(1500000000);
-            expect(await soly.balanceOf(addr1.address)).to.equal(4500000000);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(1500000000);
+            expect(await sstrike.balanceOf(addr1.address)).to.equal(4500000000);
         });
 
         it('should transfer OLY from staker to staking contract when stake is made', async () => {
-            const balanceBefore = await oly.balanceOf(deployer.address);
+            const balanceBefore = await strike.balanceOf(deployer.address);
 
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
 
-            const balanceAfter = await oly.balanceOf(deployer.address);
+            const balanceAfter = await strike.balanceOf(deployer.address);
 
             expect(balanceAfter).to.equal(balanceBefore - tokenAmount);
         });
 
         it('should add sOLY to circulating supply when stake is made', async () => {            
-            expect(await soly.circulatingSupply()).to.equal(0);
+            expect(await sstrike.circulatingSupply()).to.equal(0);
 
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
-            expect(await soly.circulatingSupply()).to.equal(tokenAmount);
+            expect(await sstrike.circulatingSupply()).to.equal(tokenAmount);
         });
 
         it('should rebase a single user correctly when profits are distributed', async () => {
@@ -238,7 +238,7 @@ describe('strike Staking', () => {
 
             await treasury.sendOLYProfits(2000000000);
             await treasury.sendOLYProfits(1000000000);
-            expect(await soly.balanceOf(deployer.address)).to.equal(+2000000000 + +tokenAmount);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(+2000000000 + +tokenAmount);
         });
 
         it('should add circulating supply correctly when a rebase is made to distribute profits', async () => {
@@ -246,7 +246,7 @@ describe('strike Staking', () => {
 
             await treasury.sendOLYProfits(2000000000);
             await treasury.sendOLYProfits(1000000000);
-            expect(await soly.circulatingSupply()).to.equal(+2000000000 + +tokenAmount);
+            expect(await sstrike.circulatingSupply()).to.equal(+2000000000 + +tokenAmount);
         });
 
         it('should rebase multiple users correctly when profits are distributed', async () => {
@@ -255,8 +255,8 @@ describe('strike Staking', () => {
 
             await treasury.sendOLYProfits(3000000000);
             await treasury.sendOLYProfits(1000000000);  
-            expect(await soly.balanceOf(deployer.address)).to.equal(1750000000);
-            expect(await soly.balanceOf(addr1.address)).to.equal(5250000000);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(1750000000);
+            expect(await sstrike.balanceOf(addr1.address)).to.equal(5250000000);
         });
 
         it('should add circualting supply correctly when multiple users are distributed profits', async () => {
@@ -265,32 +265,32 @@ describe('strike Staking', () => {
 
             await treasury.sendOLYProfits(3000000000);
             await treasury.sendOLYProfits(1000000000);
-            expect(await soly.circulatingSupply()).to.equal(7000000000);
+            expect(await sstrike.circulatingSupply()).to.equal(7000000000);
         });
 
         it('should pass if there is profit and no staker', async () => {
-            const totalSupplyBefore = await soly.totalSupply();
+            const totalSupplyBefore = await sstrike.totalSupply();
             await treasury.sendOLYProfits(3000000000);
 
-            const totalSupplyAfter1 = await soly.totalSupply();  
+            const totalSupplyAfter1 = await sstrike.totalSupply();  
             expect(totalSupplyBefore).to.equal(totalSupplyAfter1);
 
             await treasury.sendOLYProfits(3000000000);
 
-            const totalSupplyAfter2 = await soly.totalSupply();  
+            const totalSupplyAfter2 = await sstrike.totalSupply();  
             expect(totalSupplyAfter2).to.equal(totalSupplyBefore.toNumber() + 3000000000);
         });
 
         it('should NOT add to circulating supply if there is profit and no stakers', async () => {
-            const circulatingSupplyBefore = await soly.circulatingSupply();
+            const circulatingSupplyBefore = await sstrike.circulatingSupply();
             expect(circulatingSupplyBefore).to.equal(0);
 
             await treasury.sendOLYProfits(3000000000);
-            const circulatingSupplyAfter1 = await soly.circulatingSupply(); 
+            const circulatingSupplyAfter1 = await sstrike.circulatingSupply(); 
             expect(circulatingSupplyAfter1).to.equal(0);
 
             await treasury.sendOLYProfits(3000000000);
-            const circulatingSupplyAfter2 = await soly.circulatingSupply(); 
+            const circulatingSupplyAfter2 = await sstrike.circulatingSupply(); 
             expect(circulatingSupplyAfter2).to.equal(0);
         });
 
@@ -299,7 +299,7 @@ describe('strike Staking', () => {
             await treasury.sendOLYProfits("19000000000000000");
             await treasury.sendOLYProfits("19000000000000000");
 
-            expect(await soly.balanceOf(deployer.address)).to.equal("19000001000000000");
+            expect(await sstrike.balanceOf(deployer.address)).to.equal("19000001000000000");
         });
     
     });
@@ -307,15 +307,15 @@ describe('strike Staking', () => {
     describe('unstakeOLY()', () => {
         it('should transfer sOLY from unstaker to staking contract when user unstakes', async () => {
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
-            expect(await soly.balanceOf(deployer.address)).to.equal(1000000000);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(1000000000);
 
-            const _nonce = await soly.nonces(deployer.address);
+            const _nonce = await sstrike.nonces(deployer.address);
 
             const _domain = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val = {
@@ -331,15 +331,15 @@ describe('strike Staking', () => {
             const _sig = ethers.utils.splitSignature(signature);
 
             await staking.unstakeOLY('500000000', deadline, _sig.v, _sig.r, _sig.s);
-            expect(await soly.balanceOf(deployer.address)).to.equal('500000000');
+            expect(await sstrike.balanceOf(deployer.address)).to.equal('500000000');
 
-            const _nonce2 = await soly.nonces(deployer.address);
+            const _nonce2 = await sstrike.nonces(deployer.address);
 
             const _domain2 = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val2 = {
@@ -356,20 +356,20 @@ describe('strike Staking', () => {
             const _sig2 = ethers.utils.splitSignature(signature2);
 
             await staking.unstakeOLY(500000000, deadline, _sig2.v, _sig2.r, _sig2.s);
-            expect(await soly.balanceOf(deployer.address)).to.equal(0);
+            expect(await sstrike.balanceOf(deployer.address)).to.equal(0);
         });
 
         it('should transfer OLY back to user when they unstake', async () => {
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
-            const balanceAfter = await oly.balanceOf(deployer.address);
+            const balanceAfter = await strike.balanceOf(deployer.address);
 
-            const _nonce = await soly.nonces(deployer.address);
+            const _nonce = await sstrike.nonces(deployer.address);
 
             const _domain = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val = {
@@ -385,15 +385,15 @@ describe('strike Staking', () => {
             const _sig = ethers.utils.splitSignature(signature);
 
             await staking.unstakeOLY('500000000', deadline, _sig.v, _sig.r, _sig.s);
-            expect(await oly.balanceOf(deployer.address)).to.equal(+balanceAfter.toNumber() + +500000000);
+            expect(await strike.balanceOf(deployer.address)).to.equal(+balanceAfter.toNumber() + +500000000);
 
-            const _nonce2 = await soly.nonces(deployer.address);
+            const _nonce2 = await sstrike.nonces(deployer.address);
 
             const _domain2 = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val2 = {
@@ -410,22 +410,22 @@ describe('strike Staking', () => {
             const _sig2 = ethers.utils.splitSignature(signature2);
 
             await staking.unstakeOLY(500000000, deadline, _sig2.v, _sig2.r, _sig2.s);
-            expect(await oly.balanceOf(deployer.address)).to.equal(balanceAfter.toNumber() + 1000000000);
+            expect(await strike.balanceOf(deployer.address)).to.equal(balanceAfter.toNumber() + 1000000000);
         });
 
         it('should remove sOLY from circulating supply when unstake is made', async () => {            
-            expect(await soly.circulatingSupply()).to.equal(0);
+            expect(await sstrike.circulatingSupply()).to.equal(0);
 
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
-            expect(await soly.circulatingSupply()).to.equal(1000000000);
+            expect(await sstrike.circulatingSupply()).to.equal(1000000000);
 
-            const _nonce = await soly.nonces(deployer.address);
+            const _nonce = await sstrike.nonces(deployer.address);
 
             const _domain = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val = {
@@ -441,15 +441,15 @@ describe('strike Staking', () => {
             const _sig = ethers.utils.splitSignature(signature);
 
             await staking.unstakeOLY('500000000', deadline, _sig.v, _sig.r, _sig.s);
-            expect(await soly.circulatingSupply()).to.equal(500000000);
+            expect(await sstrike.circulatingSupply()).to.equal(500000000);
 
-            const _nonce2 = await soly.nonces(deployer.address);
+            const _nonce2 = await sstrike.nonces(deployer.address);
 
             const _domain2 = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val2 = {
@@ -466,19 +466,19 @@ describe('strike Staking', () => {
             const _sig2 = ethers.utils.splitSignature(signature2);
 
             await staking.unstakeOLY(500000000, deadline, _sig2.v, _sig2.r, _sig2.s);
-            expect(await soly.circulatingSupply()).to.equal(0);
+            expect(await sstrike.circulatingSupply()).to.equal(0);
         });
 
         it('shoud NOT let a user unstake more than they have', async () => {
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
 
-            const _nonce = await soly.nonces(deployer.address);
+            const _nonce = await sstrike.nonces(deployer.address);
 
             const _domain = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val = {
@@ -500,13 +500,13 @@ describe('strike Staking', () => {
             await staking.stakeOLY(tokenAmount, deadline,  sig.v, sig.r, sig.s);
             await staking.connect(addr1).stakeOLY(3000000000, deadline,  sigAddr1.v, sigAddr1.r, sigAddr1.s);
 
-            const _nonce = await soly.nonces(deployer.address);
+            const _nonce = await sstrike.nonces(deployer.address);
 
             const _domain = {
-                name: await soly.name(),
+                name: await sstrike.name(),
                 version:'1',
                 chainId: deployer.provider._network.chainId,
-                verifyingContract: soly.address.toString()
+                verifyingContract: sstrike.address.toString()
             }
 
             const _val = {
