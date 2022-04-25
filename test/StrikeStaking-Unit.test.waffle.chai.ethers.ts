@@ -70,7 +70,7 @@ describe('strike Staking', () => {
         sSTRIKE = await ethers.getContractFactory('sStrike');
         sstrike = await sSTRIKE.deploy(staking.address);
 
-        await staking.initialize( strike.address, sstrike.address, treasury.address, '1642546800');
+        await staking.initialize( strike.address, sstrike.address, treasury.address, calculateEpoch.address);
         await staking.transferOwnership(treasury.address)
         //await sstrike.setMonetaryPolicy(staking.address);
         // await calculateEpoch.setTreasury(treasury.address)

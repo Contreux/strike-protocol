@@ -32,6 +32,7 @@
     "compile": "npx hardhat compile",
     "clean": "npx hardhat clean",
     "start": "npx hardhat run scripts/deployAll.js --network mainnet",
+    "test-net": "npx hardhat run scripts/deployAll.js --network "
     "lint:sol": "solhint -f table contracts/**/*.sol"
   },
   "repository": {
